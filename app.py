@@ -5,8 +5,8 @@ from transformers import pipeline
 # Force Streamlit to use pandas instead of pyarrow
 os.environ["STREAMLIT_PANDAS"] = "1"
 
-# Load a pre-trained fake news detection model
-model = pipeline("text-classification", model="mrm8488/bert-tiny-finetuned-fake-news-detection")
+# Load a stronger fake news detection model from Hugging Face
+model = pipeline("text-classification", model="Pulk17/Fake-News-Detection")
 
 # Map raw model labels to human-friendly text
 label_map = {
@@ -25,9 +25,20 @@ user_input = st.text_area("Enter news text:")
 if st.button("Check"):
     if user_input.strip():
         result = model(user_input)[0]
-        label = label_map.get(result['label'], result['label'])
+        raw_label = result['label']
+        label = label_map.get(raw_label, raw_label)
         score = result['score']
-        st.success(f"Prediction: {label} (confidence: {score:.2f})")
+
+        # Add "Uncertain" category if confidence is low
+        if score < 0.7:
+            st.info(f"Prediction: Uncertain — please verify with trusted sources (confidence: {score:.2f})")
+        else:
+            st.success(f"Prediction: {label} (confidence: {score:.2f})")
     else:
         st.warning("Please enter some text.")
+
+# Disclaimer section
+st.markdown("---")
+st.caption("⚠️ Disclaimer: This tool is experimental. No detector is 100% accurate. "
+           "Always verify information with trusted sources such as BBC, Reuters, or official statements.")
 
