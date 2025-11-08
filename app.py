@@ -30,7 +30,7 @@ def check_fact_with_google(query):
     return None
 
 # Website title
-st.title("📰 Fake News Detector + Fact Check")
+st.title("RealityCheck — AI News Verifier")
 st.write("Paste a headline or article below to check if it's fake or real.")
 
 # Text input box
