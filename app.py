@@ -25,7 +25,7 @@ label_map = {
 
 # Google Fact Check API endpoint
 FACTCHECK_API = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
-API_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"  # <-- replace with your key
+API_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"  # <-- your key
 
 def check_fact_with_google(query):
     """Query Google Fact Check Tools API for fact-check results."""
@@ -91,6 +91,7 @@ if st.button("Check"):
 st.markdown("---")
 st.caption("⚠️ Disclaimer: This tool is experimental. AI predictions are not authoritative. "
            "Always verify information with trusted sources and fact‑checker verdicts.")
+
 
 
 
