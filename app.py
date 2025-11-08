@@ -6,14 +6,21 @@ from transformers import pipeline
 # Force Streamlit to use pandas instead of pyarrow
 os.environ["STREAMLIT_PANDAS"] = "1"
 
-# ✅ Use a verified Hugging Face Transformers model
-# This one is compatible with pipeline("text-classification")
-model = pipeline("text-classification", model="Pulk17/Fake-News-Detection")
+# Try loading the primary fake news detection model
+try:
+    model = pipeline("text-classification", model="Pulk17/Fake-News-Detection")
+    MODEL_NAME = "Pulk17/Fake-News-Detection"
+except Exception as e:
+    st.warning("⚠️ Primary model failed to load. Falling back to backup model.")
+    model = pipeline("text-classification", model="distilbert-base-uncased-finetuned-sst-2")
+    MODEL_NAME = "distilbert-base-uncased-finetuned-sst-2"
 
 # Map raw model labels to human-friendly text
 label_map = {
     "LABEL_0": "Real News",
-    "LABEL_1": "Fake News"
+    "LABEL_1": "Fake News",
+    "NEGATIVE": "Fake News",
+    "POSITIVE": "Real News"
 }
 
 # Google Fact Check API endpoint
@@ -32,7 +39,7 @@ def check_fact_with_google(query):
 
 # Website title
 st.title("📰 Fake News Detector + Fact Check")
-st.write("Paste a headline or article below to check if it's fake or real.")
+st.write(f"Currently using model: **{MODEL_NAME}**")
 
 # Text input box
 user_input = st.text_area("Enter news text:")
@@ -56,8 +63,8 @@ if st.button("Check"):
         st.subheader("Confidence Breakdown")
         st.bar_chart({
             "Confidence": {
-                "Real News": result['score'] if raw_label == "LABEL_0" else 1 - result['score'],
-                "Fake News": result['score'] if raw_label == "LABEL_1" else 1 - result['score']
+                "Real News": result['score'] if label == "Real News" else 1 - result['score'],
+                "Fake News": result['score'] if label == "Fake News" else 1 - result['score']
             }
         })
 
@@ -84,6 +91,7 @@ if st.button("Check"):
 st.markdown("---")
 st.caption("⚠️ Disclaimer: This tool is experimental. AI predictions are not authoritative. "
            "Always verify information with trusted sources and fact‑checker verdicts.")
+
 
 
 
