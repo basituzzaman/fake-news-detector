@@ -7,7 +7,7 @@ from transformers import pipeline
 os.environ["STREAMLIT_PANDAS"] = "1"
 
 # Load a stronger fake news detection model
-model = pipeline("text-classification", model="Pulk17/Fake-News-Detection")
+model = pipeline("text-classification", model="Ma120/Fake-News-Detection")
 
 # Map raw model labels to human-friendly text
 label_map = {
