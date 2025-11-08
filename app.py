@@ -3,6 +3,7 @@ import requests
 import streamlit as st
 from transformers import pipeline
 
+# Force Streamlit to use pandas instead of pyarrow
 os.environ["STREAMLIT_PANDAS"] = "1"
 
 # ✅ Primary model (verified fake-news detector)
@@ -14,7 +15,7 @@ except Exception:
     model = pipeline("text-classification", model="distilbert-base-uncased-finetuned-sst-2")
     MODEL_NAME = "distilbert-base-uncased-finetuned-sst-2"
 
-# Map labels to human-friendly text
+# Map raw model labels to human-friendly text
 label_map = {
     "LABEL_0": "Real News",
     "LABEL_1": "Fake News",
@@ -22,11 +23,12 @@ label_map = {
     "POSITIVE": "Real News"
 }
 
-# Google Fact Check API
+# Google Fact Check API endpoint
 FACTCHECK_API = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
-API_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"
+API_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"  # <-- your key
 
 def check_fact_with_google(query):
+    """Query Google Fact Check Tools API for fact-check results."""
     params = {"query": query, "key": API_KEY}
     response = requests.get(FACTCHECK_API, params=params)
     if response.status_code == 200:
@@ -35,23 +37,38 @@ def check_fact_with_google(query):
             return data["claims"]
     return None
 
+# Website title
 st.title("📰 Fake News Detector + Fact Check")
 st.write(f"Currently using model: **{MODEL_NAME}**")
 
+# Text input box
 user_input = st.text_area("Enter news text:")
 
+# Button to run detection
 if st.button("Check"):
     if user_input.strip():
+        # Run AI model
         result = model(user_input)[0]
         raw_label = result['label']
         label = label_map.get(raw_label, raw_label)
         score = result['score']
 
+        # Show AI prediction
         if score < 0.7:
             st.info(f"AI Prediction: Uncertain — please verify (confidence: {score:.2f})")
         else:
             st.success(f"AI Prediction: {label} (confidence: {score:.2f})")
 
+        # Confidence breakdown
+        st.subheader("Confidence Breakdown")
+        st.bar_chart({
+            "Confidence": {
+                "Real News": result['score'] if label == "Real News" else 1 - result['score'],
+                "Fake News": result['score'] if label == "Fake News" else 1 - result['score']
+            }
+        })
+
+        # Fact check results
         st.subheader("🔎 Fact Check Results")
         claims = check_fact_with_google(user_input)
         if claims:
@@ -70,6 +87,7 @@ if st.button("Check"):
     else:
         st.warning("Please enter some text.")
 
+# Disclaimer
 st.markdown("---")
 st.caption("⚠️ Disclaimer: This tool is experimental. AI predictions are not authoritative. "
            "Always verify information with trusted sources and fact‑checker verdicts.")
