@@ -6,13 +6,13 @@ from transformers import pipeline
 # Force Streamlit to use pandas instead of pyarrow
 os.environ["STREAMLIT_PANDAS"] = "1"
 
-# Load a stronger fake news detection model
+# Load the fake news detection model
 model = pipeline("text-classification", model="Pulk17/Fake-News-Detection")
 
-# Map raw model labels to human-friendly text
+# ✅ Correct label mapping
 label_map = {
-    "LABEL_0": "Real News",
-    "LABEL_1": "Fake News"
+    "LABEL_0": "Fake News",
+    "LABEL_1": "Real News"
 }
 
 # Google Fact Check API endpoint
@@ -51,12 +51,12 @@ if st.button("Check"):
         else:
             st.success(f"AI Prediction: {label} (confidence: {score:.2f})")
 
-        # Show confidence breakdown
+        # ✅ Fixed confidence breakdown
         st.subheader("Confidence Breakdown")
         st.bar_chart({
             "Confidence": {
-                "Real News": result['score'] if raw_label == "LABEL_0" else 1 - result['score'],
-                "Fake News": result['score'] if raw_label == "LABEL_1" else 1 - result['score']
+                "Real News": result['score'] if raw_label == "LABEL_1" else 1 - result['score'],
+                "Fake News": result['score'] if raw_label == "LABEL_0" else 1 - result['score']
             }
         })
 
@@ -79,3 +79,4 @@ if st.button("Check"):
 st.markdown("---")
 st.caption("⚠️ Disclaimer: This tool is experimental. No detector is 100% accurate. "
            "Always verify information with trusted sources such as BBC, Reuters, or official statements.")
+
