@@ -34,6 +34,15 @@ if st.button("Check"):
             st.info(f"Prediction: Uncertain — please verify with trusted sources (confidence: {score:.2f})")
         else:
             st.success(f"Prediction: {label} (confidence: {score:.2f})")
+
+        # Confidence bar chart
+        st.subheader("Confidence Breakdown")
+        st.bar_chart({
+            "Confidence": {
+                "Real News": result['score'] if raw_label == "LABEL_0" else 1 - result['score'],
+                "Fake News": result['score'] if raw_label == "LABEL_1" else 1 - result['score']
+            }
+        })
     else:
         st.warning("Please enter some text.")
 
@@ -41,4 +50,5 @@ if st.button("Check"):
 st.markdown("---")
 st.caption("⚠️ Disclaimer: This tool is experimental. No detector is 100% accurate. "
            "Always verify information with trusted sources such as BBC, Reuters, or official statements.")
+
 
