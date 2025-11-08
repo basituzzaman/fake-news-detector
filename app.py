@@ -51,7 +51,7 @@ if st.button("Check"):
         else:
             st.success(f"AI Prediction: {label} (confidence: {score:.2f})")
 
-        # Show confidence breakdown
+        # Confidence breakdown
         st.subheader("Confidence Breakdown")
         st.bar_chart({
             "Confidence": {
@@ -60,25 +60,30 @@ if st.button("Check"):
             }
         })
 
-        # Run fact check
+        # Fact check results
         st.subheader("🔎 Fact Check Results")
         claims = check_fact_with_google(user_input)
         if claims:
             for c in claims:
                 review = c.get("claimReview", [])
                 if review:
-                    st.write(f"- Source: {review[0]['publisher']['name']}")
-                    st.write(f"  Rating: {review[0]['textualRating']}")
-                    st.write(f"  URL: {review[0]['url']}")
+                    publisher = review[0]['publisher']['name']
+                    rating = review[0].get('textualRating', 'No rating provided')
+                    url = review[0].get('url', '')
+                    st.write(f"- Source: {publisher}")
+                    st.write(f"  Verdict: {rating}")
+                    if url:
+                        st.write(f"  [Read more]({url})")
         else:
             st.info("No fact‑check results found for this claim.")
     else:
         st.warning("Please enter some text.")
 
-# Disclaimer section
+# Disclaimer
 st.markdown("---")
-st.caption("⚠️ Disclaimer: This tool is experimental. No detector is 100% accurate. "
-           "Always verify information with trusted sources such as BBC, Reuters, or official statements.")
+st.caption("⚠️ Disclaimer: This tool is experimental. AI predictions are not authoritative. "
+           "Always verify information with trusted sources and fact‑checker verdicts.")
+
 
 
 
