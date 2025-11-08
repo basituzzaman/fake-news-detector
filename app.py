@@ -98,12 +98,20 @@ if st.button("Check"):
 # --- Disclaimer ---
 st.markdown(
     """
-    <div style="background-color:#f9f9f9; padding:10px; border-radius:5px; border:1px solid #ddd;">
+    <div style="
+        background-color:#ffffff; 
+        padding:12px; 
+        border-radius:6px; 
+        border:2px solid #000000; 
+        color:#000000;
+        font-size:14px;
+    ">
     ⚠️ <b>Disclaimer:</b> RealityCheck is experimental. No detector is 100% accurate. 
     Always verify information with trusted sources such as BBC, Reuters, or official statements.
     </div>
     """,
     unsafe_allow_html=True
 )
+
 
 
