@@ -17,7 +17,7 @@ label_map = {
 
 # Google Fact Check API endpoint
 FACTCHECK_API = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
-API_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"
+API_KEY = "YOUR_GOOGLE_API_KEY"  # replace with your key
 
 def check_fact_with_google(query):
     """Query Google Fact Check Tools API for fact-check results."""
@@ -29,14 +29,32 @@ def check_fact_with_google(query):
             return data["claims"]
     return None
 
-# Website title
-st.title("RealityCheck — AI News Verifier")
-st.write("Paste a headline or article below to check if it's fake or real.")
+# --- Custom Header ---
+st.markdown(
+    """
+    <style>
+    .title {
+        font-size: 40px;
+        font-weight: bold;
+        color: #2E86C1;
+        text-align: center;
+    }
+    .subtitle {
+        font-size: 18px;
+        color: #555;
+        text-align: center;
+    }
+    </style>
+    <div class="title">RealityCheck ✅</div>
+    <div class="subtitle">AI‑powered Fake News Detection + Fact Verification</div>
+    """,
+    unsafe_allow_html=True
+)
 
-# Text input box
+# --- Input ---
 user_input = st.text_area("Enter news text:")
 
-# Button to run detection
+# --- Prediction + Fact Check ---
 if st.button("Check"):
     if user_input.strip():
         # Run AI model
@@ -45,13 +63,15 @@ if st.button("Check"):
         label = label_map.get(raw_label, raw_label)
         score = result['score']
 
-        # Show AI prediction
+        # Verdict with icons
         if score < 0.7:
-            st.info(f"AI Prediction: Uncertain — please verify (confidence: {score:.2f})")
+            st.warning(f"⚠️ Uncertain — please verify (confidence: {score:.2f})")
+        elif label == "Real News":
+            st.success(f"✅ RealityCheck Verdict: Real News (confidence: {score:.2f})")
         else:
-            st.success(f"AI Prediction: {label} (confidence: {score:.2f})")
+            st.error(f"❌ RealityCheck Verdict: Fake News (confidence: {score:.2f})")
 
-        # ✅ Fixed confidence breakdown
+        # Confidence breakdown
         st.subheader("Confidence Breakdown")
         st.bar_chart({
             "Confidence": {
@@ -60,7 +80,7 @@ if st.button("Check"):
             }
         })
 
-        # Run fact check
+        # Fact check results
         st.subheader("🔎 Fact Check Results")
         claims = check_fact_with_google(user_input)
         if claims:
@@ -69,14 +89,21 @@ if st.button("Check"):
                 if review:
                     st.write(f"- Source: {review[0]['publisher']['name']}")
                     st.write(f"  Rating: {review[0]['textualRating']}")
-                    st.write(f"  URL: {review[0]['url']}")
+                    st.write(f"  [Read more]({review[0]['url']})")
         else:
             st.info("No fact‑check results found for this claim.")
     else:
         st.warning("Please enter some text.")
 
-# Disclaimer section
-st.markdown("---")
-st.caption("⚠️ Disclaimer: This tool is experimental. No detector is 100% accurate. "
-           "Always verify information with trusted sources such as BBC, Reuters, or official statements.")
+# --- Disclaimer ---
+st.markdown(
+    """
+    <div style="background-color:#f9f9f9; padding:10px; border-radius:5px; border:1px solid #ddd;">
+    ⚠️ <b>Disclaimer:</b> RealityCheck is experimental. No detector is 100% accurate. 
+    Always verify information with trusted sources such as BBC, Reuters, or official statements.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
