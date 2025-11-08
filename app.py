@@ -6,8 +6,9 @@ from transformers import pipeline
 # Force Streamlit to use pandas instead of pyarrow
 os.environ["STREAMLIT_PANDAS"] = "1"
 
-# Load a stronger fake news detection model
-model = pipeline("text-classification", model="Ma120/Fake-News-Detection")
+# ✅ Use a verified Hugging Face Transformers model
+# This one is compatible with pipeline("text-classification")
+model = pipeline("text-classification", model="Pulk17/Fake-News-Detection")
 
 # Map raw model labels to human-friendly text
 label_map = {
@@ -17,7 +18,7 @@ label_map = {
 
 # Google Fact Check API endpoint
 FACTCHECK_API = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
-API_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"  # <-- paste your key here
+API_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"  # <-- replace with your key
 
 def check_fact_with_google(query):
     """Query Google Fact Check Tools API for fact-check results."""
