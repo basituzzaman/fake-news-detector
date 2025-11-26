@@ -4,16 +4,19 @@ import streamlit as st
 
 # Hugging Face Inference API
 def get_model_prediction(text):
-    API_URL = "https://api-inference.huggingface.co/models/Pulk17/Fake-News-Detection"
+    API_URL = "https://api-inference.huggingface.co/models/abhishek/fake-news-detection"
     headers = {"Authorization": "Bearer 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"}  # Replace with your token
     response = requests.post(API_URL, headers=headers, json={"inputs": text})
     result = response.json()
+
+    # Handle errors and empty responses
+    if isinstance(result, dict) and "error" in result:
+        return "Error", 0.0
     if isinstance(result, list) and len(result) > 0:
-        label = result[0]["label"]
-        score = result[0]["score"]
+        label = result[0].get("label", "Unknown")
+        score = result[0].get("score", 0.0)
         return label, score
-    else:
-        return "Unknown", 0.0
+    return "Unknown", 0.0
 
 # Google Fact Check API
 FACTCHECK_API = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
@@ -75,15 +78,17 @@ if st.button("Check"):
         # --- Unified Verdict Logic ---
         if label == "Fake News":
             if articles:
-                st.warning(f"⚠️ AI model flagged this as Fake News (confidence: {score:.2f}), "
+                st.warning(f"⚠️ AI flagged this as Fake News (confidence: {score:.2f}), "
                            f"but recent headlines suggest it may be real.")
             elif claims:
-                st.warning(f"⚠️ AI model flagged this as Fake News (confidence: {score:.2f}), "
+                st.warning(f"⚠️ AI flagged this as Fake News (confidence: {score:.2f}), "
                            f"but fact-check sources provide context below.")
             else:
                 st.error(f"❌ RealityCheck Verdict: Fake News (confidence: {score:.2f})")
         elif label == "Real News":
             st.success(f"✅ RealityCheck Verdict: Real News (confidence: {score:.2f})")
+        elif label in ["Unknown", "Error"]:
+            st.info("🤔 RealityCheck couldn’t verify this claim. Try rephrasing or check back later.")
         else:
             st.info("🤔 Unable to determine verdict. Please try again.")
 
@@ -124,7 +129,7 @@ st.markdown(
         margin-top:30px;
     ">
     ⚠️ <b>Disclaimer:</b><br>
-    RealityCheck is experimental. AI predictions are based on pre‑2024 data and may misclassify current events.<br>
+    RealityCheck is experimental. AI predictions are based on limited training data and may misclassify current events.<br>
     Always verify information with trusted sources such as BBC, Reuters, or official statements.
     </div>
     """,
