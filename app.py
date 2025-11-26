@@ -17,10 +17,10 @@ label_map = {
 
 # Google Fact Check API
 FACTCHECK_API = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
-FACTCHECK_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"
+FACTCHECK_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"   # replace with your key
 
 # NewsAPI
-NEWSAPI_KEY = "6024b58d5e4549dbaccd2d49cd473cea"
+NEWSAPI_KEY = "6024b58d5e4549dbaccd2d49cd473cea"   # replace with your key
 
 def check_fact_with_google(query):
     params = {"query": query, "key": FACTCHECK_KEY}
@@ -78,7 +78,7 @@ if st.button("Check"):
 
         # --- Unified Verdict Logic ---
         if label == "Fake News":
-            if articles:  # override if recent headlines exist
+            if articles:
                 st.warning(f"⚠️ AI model flagged this as Fake News (confidence: {score:.2f}), "
                            f"but recent headlines suggest it may be real.")
             elif claims:
