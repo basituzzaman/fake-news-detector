@@ -15,15 +15,14 @@ label_map = {
     "LABEL_1": "Real News"
 }
 
-# Google Fact Check API endpoint
+# Google Fact Check API
 FACTCHECK_API = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
-FACTCHECK_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"   # replace with your key
+FACTCHECK_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"
 
-# NewsAPI endpoint
-NEWSAPI_KEY = "6024b58d5e4549dbaccd2d49cd473cea"   # replace with your key
+# NewsAPI
+NEWSAPI_KEY = "6024b58d5e4549dbaccd2d49cd473cea"
 
 def check_fact_with_google(query):
-    """Query Google Fact Check Tools API for fact-check results."""
     params = {"query": query, "key": FACTCHECK_KEY}
     response = requests.get(FACTCHECK_API, params=params)
     if response.status_code == 200:
@@ -33,7 +32,6 @@ def check_fact_with_google(query):
     return None
 
 def check_with_newsapi(query):
-    """Query NewsAPI for recent articles related to the claim."""
     url = "https://newsapi.org/v2/everything"
     params = {
         "q": query,
@@ -51,17 +49,8 @@ def check_with_newsapi(query):
 st.markdown(
     """
     <style>
-    .title {
-        font-size: 40px;
-        font-weight: bold;
-        color: #2E86C1;
-        text-align: center;
-    }
-    .subtitle {
-        font-size: 18px;
-        color: #555;
-        text-align: center;
-    }
+    .title { font-size: 40px; font-weight: bold; color: #2E86C1; text-align: center; }
+    .subtitle { font-size: 18px; color: #555; text-align: center; }
     </style>
     <div class="title">RealityCheck ✅</div>
     <div class="subtitle">AI‑powered Fake News Detection + Fact Verification</div>
@@ -72,7 +61,7 @@ st.markdown(
 # --- Input ---
 user_input = st.text_area("Enter news text:")
 
-# --- Prediction + Fact Check ---
+# --- Prediction + Fact Check + NewsAPI ---
 if st.button("Check"):
     if user_input.strip():
         # Run AI model
@@ -81,13 +70,24 @@ if st.button("Check"):
         label = label_map.get(raw_label, raw_label)
         score = result['score']
 
-        # Verdict with icons
-        if score < 0.7:
-            st.warning(f"⚠️ Uncertain — please verify (confidence: {score:.2f})")
-        elif label == "Real News":
-            st.success(f"✅ RealityCheck Verdict: Real News (confidence: {score:.2f})")
+        # Fact check results
+        claims = check_fact_with_google(user_input)
+
+        # NewsAPI results
+        articles = check_with_newsapi(user_input)
+
+        # --- Unified Verdict Logic ---
+        if label == "Fake News":
+            if articles:  # override if recent headlines exist
+                st.warning(f"⚠️ AI model flagged this as Fake News (confidence: {score:.2f}), "
+                           f"but recent headlines suggest it may be real.")
+            elif claims:
+                st.warning(f"⚠️ AI model flagged this as Fake News (confidence: {score:.2f}), "
+                           f"but fact-check sources provide context below.")
+            else:
+                st.error(f"❌ RealityCheck Verdict: Fake News (confidence: {score:.2f})")
         else:
-            st.error(f"❌ RealityCheck Verdict: Fake News (confidence: {score:.2f})")
+            st.success(f"✅ RealityCheck Verdict: Real News (confidence: {score:.2f})")
 
         # Confidence breakdown
         st.subheader("Confidence Breakdown")
@@ -98,9 +98,8 @@ if st.button("Check"):
             }
         })
 
-        # Fact check results
+        # Fact Check Results
         st.subheader("🔎 Fact Check Results")
-        claims = check_fact_with_google(user_input)
         if claims:
             for c in claims:
                 review = c.get("claimReview", [])
@@ -111,13 +110,12 @@ if st.button("Check"):
         else:
             st.info("No fact‑check results found for this claim.")
 
-        # NewsAPI results
+        # NewsAPI Results
         st.subheader("📰 Recent News Mentions")
-        articles = check_with_newsapi(user_input)
         if articles:
             for article in articles:
-                st.write(f"- [{article['title']}]({article['url']})")
-                st.caption(f"Source: {article['source']['name']} | Published: {article['publishedAt'][:10]}")
+                st.markdown(f"**[{article['title']}]({article['url']})**  \n"
+                            f"*Source: {article['source']['name']} | Published: {article['publishedAt'][:10]}*")
         else:
             st.info("No recent news articles found for this claim.")
     else:
@@ -137,12 +135,9 @@ st.markdown(
         margin-top:30px;
     ">
     ⚠️ <b>Disclaimer:</b><br>
-    RealityCheck is experimental. No detector is 100% accurate.<br>
+    RealityCheck is experimental. AI predictions are based on pre‑2024 data and may misclassify current events.<br>
     Always verify information with trusted sources such as BBC, Reuters, or official statements.
     </div>
     """,
     unsafe_allow_html=True
 )
-
-
-
