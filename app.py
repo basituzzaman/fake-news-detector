@@ -17,17 +17,35 @@ label_map = {
 
 # Google Fact Check API endpoint
 FACTCHECK_API = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
-API_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ" 
+FACTCHECK_KEY = "AIzaSyDmdUxpYeu7Wf-dGLnN48GpkuM2m8v6-LQ"   # replace with your key
+
+# NewsAPI endpoint
+NEWSAPI_KEY = "6024b58d5e4549dbaccd2d49cd473cea"   # replace with your key
 
 def check_fact_with_google(query):
     """Query Google Fact Check Tools API for fact-check results."""
-    params = {"query": query, "key": API_KEY}
+    params = {"query": query, "key": FACTCHECK_KEY}
     response = requests.get(FACTCHECK_API, params=params)
     if response.status_code == 200:
         data = response.json()
         if "claims" in data:
             return data["claims"]
     return None
+
+def check_with_newsapi(query):
+    """Query NewsAPI for recent articles related to the claim."""
+    url = "https://newsapi.org/v2/everything"
+    params = {
+        "q": query,
+        "language": "en",
+        "sortBy": "relevancy",
+        "pageSize": 5,
+        "apiKey": NEWSAPI_KEY
+    }
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        return response.json().get("articles", [])
+    return []
 
 # --- Custom Header ---
 st.markdown(
@@ -92,6 +110,16 @@ if st.button("Check"):
                     st.write(f"  [Read more]({review[0]['url']})")
         else:
             st.info("No fact‑check results found for this claim.")
+
+        # NewsAPI results
+        st.subheader("📰 Recent News Mentions")
+        articles = check_with_newsapi(user_input)
+        if articles:
+            for article in articles:
+                st.write(f"- [{article['title']}]({article['url']})")
+                st.caption(f"Source: {article['source']['name']} | Published: {article['publishedAt'][:10]}")
+        else:
+            st.info("No recent news articles found for this claim.")
     else:
         st.warning("Please enter some text.")
 
@@ -99,14 +127,17 @@ if st.button("Check"):
 st.markdown(
     """
     <div style="
-        background-color:#ffffff; 
-        padding:12px; 
-        border-radius:6px; 
-        border:2px solid #000000; 
-        color:#000000;
-        font-size:14px;
+        background-color:#000000;
+        padding:14px;
+        border-radius:6px;
+        border:2px solid #000000;
+        color:#ffffff;
+        font-size:15px;
+        text-align:center;
+        margin-top:30px;
     ">
-    ⚠️ <b>Disclaimer:</b> RealityCheck is experimental. No detector is 100% accurate. 
+    ⚠️ <b>Disclaimer:</b><br>
+    RealityCheck is experimental. No detector is 100% accurate.<br>
     Always verify information with trusted sources such as BBC, Reuters, or official statements.
     </div>
     """,
